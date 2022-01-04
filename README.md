@@ -78,3 +78,54 @@ implementation("com.graphql-java-kickstart:graphql-java-tools:11.0.0")
   }
 }
 ```
+
+## 사용자 등록 API
+```
+mutation {
+  createUser(user: {
+    id: 1
+    name: ""
+  }) {
+    id
+    name
+  }
+}
+```
+```
+{
+  "data": {
+    "createUser": {
+      "id": 1,
+      "name": ""
+    }
+  }
+}
+```
+## 사용자 등록 API Validation 추가
+* 공백 체크 추가
+```kotlin
+data class User(
+    val id: Long?,
+    @get:NotBlank(message = "이름은 공백일 수 없습니다.")
+    val name: String?
+)
+```
+* GraphQL Service에 @Validated 추가 
+* API @Valid 추가
+```
+{
+  "errors": [
+    {
+      "message": "이름은 공백일 수 없습니다.",
+      "locations": [],
+      "extensions": {
+        "code": "createUser.user.name",
+        "detailMessage": ""
+      }
+    }
+  ],
+  "data": {
+    "createUser": null
+  }
+}
+```
