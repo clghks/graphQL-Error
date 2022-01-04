@@ -112,6 +112,28 @@ data class User(
 ```
 * GraphQL Service에 @Validated 추가 
 * API @Valid 추가
+```kotlin
+@Service
+@GraphQLApi
+@Validated
+class DemoService {
+    @GraphQLQuery(name = "getUser", description = "사용자 조회")
+    fun getUser(): User {
+        return User(id = 1, name = "최치환")
+    }
+
+    @GraphQLQuery(name = "getErrorUser", description = "사용자 조회 실패")
+    fun getErrorUser(id: Long): User {
+        throw Exception("사용자 조회 실패")
+    }
+
+    @GraphQLMutation(name = "createUser", description = "사용자 등록")
+    fun createUser(@Valid user: User): User {
+        return user
+    }
+}
+```
+* 응답 결과
 ```
 {
   "errors": [
