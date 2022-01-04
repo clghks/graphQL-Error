@@ -151,3 +151,68 @@ class DemoService {
   }
 }
 ```
+
+## CustomValidator 추가
+* 정의 되어 있지 않음 Validator 을 정의하고 싶을 떄 사용 (ex: 나이 입력과 성인유무 입력을 받을 경우)
+```kotlin
+@Documented
+@Constraint(validatedBy = [CustomValidator::class])
+@Target(AnnotationTarget.CLASS)
+annotation class CustomValid(
+    val message: String = "",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Payload>> = []
+)
+
+class CustomValidator: ConstraintValidator<CustomValid, User> {
+    override fun isValid(value: User, context: ConstraintValidatorContext): Boolean {
+        if (value.isAdult && value.age < 18) {
+            context.disableDefaultConstraintViolation()
+            context.buildConstraintViolationWithTemplate("나이 입력이 잘못되었습니다.").addConstraintViolation()
+            return false
+        }
+        return true
+    }
+}
+
+@CustomValid
+data class User(
+    val id: Long?,
+    @get:NotBlank(message = "이름은 공백일 수 없습니다.")
+    val name: String?,
+    val age: Int = 0,
+    val isAdult: Boolean = false
+)
+```
+* API 호출
+```
+mutation {
+  createUser(user: {
+    id: 1
+    name: "test"
+    age: 10
+    isAdult: true
+  }) {
+    id
+    name
+  }
+}
+```
+* 오류 응답 
+```
+{
+  "errors": [
+    {
+      "message": "나이 입력이 잘못되었습니다.",
+      "locations": [],
+      "extensions": {
+        "code": "createUser.user",
+        "detailMessage": ""
+      }
+    }
+  ],
+  "data": {
+    "createUser": null
+  }
+}
+```
